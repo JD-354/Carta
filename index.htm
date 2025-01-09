@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carta 3D Realista</title>
+  <style>
+    :root {
+      --paper-color: #fff7f2;
+      --ink-color: #2c1810;
+      --shadow-color: rgba(0, 0, 0, 0.2);
+    }
+
+    body {
+      font-family: 'Times New Roman', serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(45deg, #e6d5d0, #f5e6e0);
+      padding: 40px 20px;
+      perspective: 1000px;
+    }
+
+    .scene {
+      perspective: 2000px;
+      width: 650px;
+      max-width: 90vw;
+      height: 500px;
+    }
+
+    .carta-contenedor {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 1.2s;
+      transform-style: preserve-3d;
+    }
+
+    .carta {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .carta.abierta {
+      transform: rotateX(180deg);
+    }
+
+    .frente, .contenido {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 15px;
+      padding: 40px;
+      box-sizing: border-box;
+    }
+
+    .frente {
+      background: var(--paper-color);
+      box-shadow: 
+        0 10px 30px var(--shadow-color),
+        inset 0 0 50px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transform-style: preserve-3d;
+    }
+
+    .frente::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAGFBMVEX///8zMzMzMzMzMzMzMzMzMzMzMzMzMzM2QjeuAAAACHBIWXMAAAsTAAALEwEAmpwYAAAAQklEQVQ4je2RsQ0AIAgEaXRHcP9FtLGwMoHobSiI+ZK8Nx+C7OnMaI6xB9k92eDs2GS2/ShHQqSJiIiIiIiIiMjfuQClWRj3IvFj1wAAAABJRU5ErkJggg==');
+      opacity: 0.03;
+      border-radius: 15px;
+    }
+
+    .sello {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      background: #8b0000;
+      border-radius: 50%;
+      right: 40px;
+      top: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+      font-family: 'Brush Script MT', cursive;
+      transform: rotate(-15deg);
+      box-shadow: 
+        inset 0 0 15px rgba(0,0,0,0.3),
+        2px 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .sello::after {
+      content: 'Amor';
+      font-size: 24px;
+    }
+
+    .contenido {
+      background: var(--paper-color);
+      transform: rotateX(180deg);
+      overflow-y: auto;
+      background-image: 
+        linear-gradient(90deg, transparent 0%, transparent 5%, var(--paper-color) 5%),
+        linear-gradient(var(--ink-color) 1px, transparent 1px);
+      background-size: 100% 1.5em;
+      line-height: 1.5em;
+      padding: 1.5em 40px;
+    }
+
+    .contenido h2 {
+      color: #8b0000;
+      font-size: 2.5em;
+      margin-bottom: 30px;
+      text-align: center;
+      font-family: 'Brush Script MT', cursive;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .contenido p {
+      color: var(--ink-color);
+      font-size: 1.2em;
+      margin-bottom: 20px;
+      text-align: justify;
+      font-family: 'Times New Roman', serif;
+    }
+
+    .corazon {
+      position: absolute;
+      left: 50%;
+      bottom: 40px;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 60px;
+      background: #8b0000;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 
+        0 5px 15px rgba(139,0,0,0.3),
+        inset 0 -2px 5px rgba(0,0,0,0.2);
+      z-index: 10;
+    }
+
+    .corazon::before {
+      content: '❤';
+      color: #fff;
+      font-size: 30px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .corazon:hover {
+      transform: translateX(-50%) scale(1.1);
+    }
+
+    @keyframes floatHeart {
+      0% {
+        transform: translate(0, 0) rotate(0deg) scale(0);
+        opacity: 0;
+      }
+      25% {
+        transform: translate(var(--moveX), -100px) rotate(var(--rotation)) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--moveX), -300px) rotate(var(--rotation)) scale(0);
+        opacity: 0;
+      }
+    }
+
+    .heart-bubble {
+      position: absolute;
+      font-size: 24px;
+      color: #8b0000;
+      text-shadow: 0 2px 4px rgba(139,0,0,0.2);
+      animation: floatHeart 2s ease-out forwards;
+      z-index: 5;
+    }
+
+    .esquina {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      border: 2px solid #8b0000;
+      opacity: 0.3;
+    }
+
+    .esquina-tl {
+      top: 20px;
+      left: 20px;
+      border-right: none;
+      border-bottom: none;
+    }
+
+    .esquina-br {
+      bottom: 20px;
+      right: 20px;
+      border-left: none;
+      border-top: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="scene">
+    <div class="carta-contenedor">
+      <div class="carta">
+        <div class="frente">
+          <div class="sello"></div>
+          <div class="esquina esquina-tl"></div>
+          <div class="esquina esquina-br"></div>
+          <div class="corazon"></div>
+        </div>
+        <div class="contenido">
+          <h2>Mi Amado Amor</h2>
+          <p>En cada palabra que escribo, encuentro un pedazo de mi corazón que anhela estar junto a ti. Cada letra es un suspiro, cada frase un latido que resuena con tu nombre.</p>
+          <p>Los momentos que compartimos son como estrellas en el firmamento de nuestra historia, brillantes e infinitos. Cada recuerdo es un tesoro que guardo con cariño en el cofre de mi memoria.</p>
+          <p>Eres la melodía que alegra mis días, la luz que ilumina mi camino, el sueño que se hizo realidad en mi vida. No hay palabras suficientes para expresar la profundidad de mis sentimientos por ti.</p>
+          <p>Con todo mi amor y devoción eternamente...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const carta = document.querySelector('.carta');
+    const corazon = document.querySelector('.corazon');
+    
+    function createHeart() {
+      const heart = document.createElement('div');
+      heart.innerHTML = '❤';
+      heart.className = 'heart-bubble';
+      heart.style.setProperty('--moveX', (Math.random() * 200 - 100) + 'px');
+      heart.style.setProperty('--rotation', (Math.random() * 360) + 'deg');
+      heart.style.left = Math.random() * 80 + 10 + '%';
+      heart.style.bottom = '60px';
+      return heart;
+    }
+
+    function createHeartBurst() {
+      for(let i = 0; i < 12; i++) {
+        setTimeout(() => {
+          const heart = createHeart();
+          carta.appendChild(heart);
+          setTimeout(() => heart.remove(), 2000);
+        }, i * 150);
+      }
+    }
+
+    corazon.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!carta.classList.contains('abierta')) {
+        createHeartBurst();
+      }
+      carta.classList.toggle('abierta');
+    });
+  </script>
+</body>
+</html>
